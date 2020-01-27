@@ -5,6 +5,7 @@ window.onload = function() {
     var section_num = 1;
     var currElement = undefined;
     var prevSection = undefined;
+    var prevElement = undefined;
     var is_selected = 0;
     var nested_links = [];
     var synth = window.speechSynthesis;
@@ -59,17 +60,19 @@ window.onload = function() {
                     if (currElement.nextElementSibling !== null) {
                         currElement = currElement.nextElementSibling;
                     } else {
-                        if (currSection.getName !== "form") {
+                        if (currSection.querySelector("form") !== null) {
                             currElement = currSection.querySelector("a");
+                            speak_for_buttons();
                         } else {
                             currElement = currSection.querySelector("input");
+                            speakAloud(currElement.getAttribute("placeholder") + " Input Box ");
                         }
                     }
                     addClass(currElement);
                     if (currElement.TagName == "a") {
                         speak_for_buttons();
-                    } else if(currElement.querySelector("input") !== null) {
-                    	speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " Input Box "); 
+                    } else if (currElement.querySelector("input") !== null) {
+                        speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " Input Box ");
                     } else {
                         speakAloud(currElement.textContent);
                     }
@@ -99,8 +102,8 @@ window.onload = function() {
                     addClass(currElement);
                     if (currElement.TagName == "a") {
                         speak_for_buttons();
-                    } else if(currElement.querySelector("input") !== null) {
-                    	speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " Input Box ");
+                    } else if (currElement.querySelector("input") !== null) {
+                        speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " Input Box ");
                     } else {
                         speakAloud(currElement.textContent);
                     }
@@ -110,15 +113,15 @@ window.onload = function() {
             case "Escape":
                 console.log("You pressed Escape");
                 if (is_selected == 1) {
-                	if(currElement.querySelector("input") === document.activeElement){
-                		currElement.querySelector("input").blur();
-                		speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " deselected")
-                	} else{
-	                    removeClass(currElement);
-	                    addClass(currSection);
-	                    speakAloud("Section " + section_num);
-	                    is_selected = 0;
-                	}
+                    if (currElement.querySelector("input") === document.activeElement) {
+                        currElement.querySelector("input").blur();
+                        speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " deselected")
+                    } else {
+                        removeClass(currElement);
+                        addClass(currSection);
+                        speakAloud("Section " + section_num);
+                        is_selected = 0;
+                    }
                 } else {
                     if (is_selected == 0 && prevSection !== undefined) {
                         removeClass(currSection);
@@ -165,7 +168,17 @@ window.onload = function() {
                         location.href = currElement.querySelector("a").getAttribute("href");
                         is_selected = 0;
                     } else if (currElement.querySelector("input") !== null) {
-                        currElement.querySelector("input").focus();
+                        if (currElement.querySelector("input").getAttribute("type") == "checkbox") {
+                            if (currElement.querySelector("input").checked == true) {
+                                currElement.querySelector("input").checked = false;
+                            } else {
+                                currElement.querySelector("input").checked = true;
+                            }
+                        } else if(currElement.querySelector("input").getAttribute("type") == "submit"){
+                        	currElement.querySelector("input").click(); 
+                    	} else {
+                            currElement.querySelector("input").focus();
+                        }
                         speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " is Selected");
                     }
                 }
