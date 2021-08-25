@@ -3,13 +3,17 @@ window.onload = function() {
     var currSection = document.querySelector("section");
     var total_section = document.getElementsByTagName('section').length
     var section_num = 1;
-    var currElement = undefined;
-    var prevSection = undefined;
-    var prevElement = undefined;
+    var currElement;
+    var prevSection;
+    var prevElement;
+    var numSelect = 103;
     var is_selected = 0;
+    var numSelectChar = -1;
+    var myArr = [64,42,46,];
+    var alpha;
     var nested_links = [];
     var synth = window.speechSynthesis;
-    currSection.className += "active";
+    currSection.className += " active";
     var utterThis = new SpeechSynthesisUtterance("You are at the header of the webpage");
     synth.speak(utterThis);
 
@@ -41,9 +45,16 @@ window.onload = function() {
             tag.classList.remove("active");
         }
 
+        function removeFocus() {
+            if (document.activeElement !== null) {
+                document.activeElement.blur();
+            }
+        }
+
         switch (keyName) {
             case "j":
                 console.log("You pressed J");
+                removeFocus();
                 if (is_selected == 0) {
                     removeClass(currSection);
                     if (currSection.nextElementSibling.innerHTML !== "" && currSection.nextElementSibling !== null) {
@@ -53,7 +64,8 @@ window.onload = function() {
                         currSection = document.querySelector("section");
                         section_num = 1;
                     }
-                    currSection.className += "active";
+                    currSection.scrollIntoView();
+                    addClass(currSection);
                     speakAloud("Section " + section_num);
                 } else {
                     removeClass(currElement);
@@ -68,12 +80,16 @@ window.onload = function() {
                             speakAloud(currElement.getAttribute("placeholder") + " Input Box ");
                         }
                     }
+                    currElement.scrollIntoView();
                     addClass(currElement);
                     if (currElement.TagName == "a") {
                         speak_for_buttons();
                     } else if (currElement.querySelector("input") !== null) {
                         speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " Input Box ");
-                    } else {
+                    } else if(currElement.querySelector("select") !== null) {
+                        speakAloud(currElement.querySelector("label").textContent + "Dropdown menu");
+                        // speakAloud(currElement.querySelector(' option[selected="selected"]').textContent + " is Selected");  Cancelling out above statement's voice over
+                    } else{
                         speakAloud(currElement.textContent);
                     }
                 }
@@ -81,6 +97,7 @@ window.onload = function() {
 
             case "f":
                 console.log("You pressed F");
+                removeFocus();
                 if (is_selected == 0) {
                     removeClass(currSection);
                     if (currSection.previousElementSibling !== null) {
@@ -90,6 +107,7 @@ window.onload = function() {
                         currSection = document.querySelectorAll("section")[document.querySelectorAll("section").length - 1];
                         section_num = total_section;
                     }
+                    currElement.scrollIntoView();
                     addClass(currSection);
                     speakAloud("Section " + section_num);
                 } else {
@@ -99,11 +117,14 @@ window.onload = function() {
                     } else {
                         currElement = currSection.lastElementChild;
                     }
+                    currElement.scrollIntoView();
                     addClass(currElement);
                     if (currElement.TagName == "a") {
                         speak_for_buttons();
                     } else if (currElement.querySelector("input") !== null) {
                         speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " Input Box ");
+                    } else if(currElement.querySelector("select") !== null) {
+                        speakAloud(currElement.querySelector(".selected").textContent);
                     } else {
                         speakAloud(currElement.textContent);
                     }
@@ -118,6 +139,7 @@ window.onload = function() {
                         speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " deselected")
                     } else {
                         removeClass(currElement);
+                        currSection.scrollIntoView();
                         addClass(currSection);
                         speakAloud("Section " + section_num);
                         is_selected = 0;
@@ -125,6 +147,7 @@ window.onload = function() {
                 } else {
                     if (is_selected == 0 && prevSection !== undefined) {
                         removeClass(currSection);
+                        prevSection.scrollIntoView();
                         addClass(prevSection);
                         prevSection = undefined;
                     }
@@ -174,9 +197,11 @@ window.onload = function() {
                             } else {
                                 currElement.querySelector("input").checked = true;
                             }
-                        } else if(currElement.querySelector("input").getAttribute("type") == "submit"){
-                        	currElement.querySelector("input").click(); 
-                    	} else {
+                        } else if (currElement.querySelector("input").getAttribute("type") == "submit") {
+                            currElement.querySelector("input").click();
+                        } else if (currElement.tagName == "input") {
+                            currElement.focus();
+                        } else {
                             currElement.querySelector("input").focus();
                         }
                         speakAloud(currElement.querySelector("input").getAttribute("placeholder") + " is Selected");
@@ -188,9 +213,59 @@ window.onload = function() {
                 console.log("Speaker Cancelled")
                 synth.cancel();
                 break;
+
+            case "ArrowDown":
+                console.log('up was pressed');
+                if (document.activeElement.getAttribute("type") == "text") {
+                    numSelect++;
+                    alpha = String.fromCharCode(65 + numSelect % 26);
+                    speakAloud(alpha);
+                    console.log(alpha);
+                }
+                numSelectChar = -1;
+                break;
+
+            case "ArrowUp":
+                console.log('down was pressed');
+                if (document.activeElement.getAttribute("type") == "text") {
+                    numSelect--;
+                    alpha = String.fromCharCode(65 + numSelect % 26);
+                    speakAloud(alpha);
+                }
+                numSelectChar = -1;
+                break;
+
+            case "ArrowRight":
+                console.log('right was pressed');
+                if (document.activeElement.getAttribute("type") == "text") {
+                    if (alpha !== undefined) {
+                        document.activeElement.value += alpha;
+                        speakAloud(alpha + " typed");
+                    } else {
+                        speakAloud("No Character Selected for typing");
+                    }
+                }
+                break;
+
+            case "ArrowLeft":
+                console.log('left was pressed');
+                if (document.activeElement.getAttribute("type") == "text") {
+                    document.activeElement.value = document.activeElement.value.slice(0, -1);
+                }
+                break;
+
+            case "Control":
+
+                if (document.activeElement.getAttribute("type") == "text") {
+                    console.log("control was pressed")
+                    numSelectChar++;
+                    var loc = numSelectChar % (myArr.length);
+                    alpha = String.fromCharCode(myArr[loc]);
+                    speakAloud(alpha);
+                }
+                break;
         }
 
-        window.scrollTo(currElement);
         event.stopPropagation();
     }, false);
 }
